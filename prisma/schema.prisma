@@ -1,0 +1,60 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id          Int            @id @default(autoincrement())
+  email       String         @unique @db.VarChar(255)
+  name        String         @db.VarChar(255)
+  password    String         @db.VarChar(255)
+  profile     Profile?
+  bankAccount BankAccount[]
+
+  @@map("Users")
+}
+
+model Profile {
+  id             Int    @id @default(autoincrement())
+  identityType   String @map("identity_type") @db.VarChar(50)
+  identityNumber Int    @map("identity_number")
+  address        String
+  user           User   @relation(fields: [userId], references: [id])
+  userId         Int    @unique @map("user_id")
+
+  @@map("Profiles")
+}
+
+model BankAccount {
+  id                     Int            @id @default(autoincrement())
+  bankName               String         @map("bank_name")
+  accountNumber          Int            @map("account_number")
+  balance                Float
+  createdAt              DateTime       @default(now()) @map("created_at")
+  updatedAt              DateTime       @updatedAt @map("updated_at")
+  user                   User           @relation(fields: [userId], references: [id])
+  userId                 Int
+  transactionSource      Transaction[] @relation("TransactionSource")
+  transactionDestination Transaction[] @relation("TransactionDestination")
+  @@map("BankAccounts")
+}
+
+model Transaction {
+  id                   Int          @id @default(autoincrement())
+  amount               Float
+  sourceAccount        BankAccount @relation("TransactionSource", fields: [sourceAccountId], references: [id])
+  destinationAccount   BankAccount @relation("TransactionDestination", fields: [destinationAccountId], references: [id])
+  sourceAccountId      Int          @map("source_account_id")
+  destinationAccountId Int          @map("destination_account_id")
+  @@map("Transactions")
+}
