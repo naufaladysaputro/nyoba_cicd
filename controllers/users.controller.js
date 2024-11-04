@@ -135,5 +135,6 @@ class UserController {
     }
   }
 }
+console.log("User Controller Loaded");
 
 module.exports = new UserController();
